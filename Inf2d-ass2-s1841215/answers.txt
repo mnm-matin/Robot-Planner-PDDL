@@ -1,0 +1,158 @@
+Part 1:
+1.1
+Adjacent(X,Y)
+
+
+1.2
+Location(BUFF)
+Location(UB)
+Location(UF)
+Location(LB)
+Location(LF)
+Location(MB)
+Location(MF)
+
+Location(c)
+At(X, Location)
+
+1.3
+Plate(p)
+HasFood(p)
+
+1.4
+Customer(c)
+Served(c)
+
+
+1.5
+Adjacent(BUFF, UF)
+Adjacent(UF, UB)
+Adjacent(UB, MB)
+Adjacent(LB, LF)
+Adjacent(LF, MF)
+Adjacent(MB, LB)
+Adjacent(MF, UF)
+Adjacent(UF, BUFF)
+Adjacent(UB, UF)
+Adjacent(MB, UB)
+Adjacent(LF, LB)
+Adjacent(MF, LF)
+Adjacent(LB, MB)
+Adjacent(UF, MF)
+
+Plate(p)
+Agent(a)
+Customer(c)
+
+At(a, BUFF)
+At(p, BUFF)
+At(c, LB)
+
+
+1.6
+Action(PickUp(a, p, l)
+    PRECOND: 
+			Agent(a) ∧ Plate(p) ∧ Location(l) ∧ At(a,l) ∧ At(p,l)
+    
+	EFFECT: Holding(a,p) ∧ ¬At(p,l) 
+	
+	
+1.7
+Action(HandOver(a,p,l,c)
+    PRECOND: 
+			Agent(a) ∧ Plate(p) ∧ Location(l) ∧ Customer(c) ∧ At(a,l) ∧ At(c,l) ∧ 
+				¬At(p,l) ∧ ¬Served(c) ∧ Holding(a, p) ∧ HasFood(p)
+				
+    EFFECT:  Served(c) ∧ ¬Holding(a,p)  
+
+	
+1.8
+Action(Fill(a,p)
+    PRECOND: 
+			Agent(a) ∧ Plate(p) ∧ At(a, BUFF) ∧  ¬HasFood(p) ∧ 
+				Holding(a,p) 
+				
+    EFFECT:  HasFood(p)
+
+	
+1.9
+Action(Move(a, l, d) 
+    PRECOND: 
+			Agent(a) ∧ Location(l) ∧ Location(d) ∧ At(a,l) ∧ Adjacent(l,d) ∧ (d <> l)
+			
+    EFFECT:  ¬At(a,l) ∧ At(a,d)  
+	
+	
+1.10
+Initial(
+    Agent(a) ∧ Plate(p) ∧ Location(BUFF) ∧ Customer(c) ∧ At(a, BUFF) ∧ At(p, BUFF) ∧ At(c, UF) ∧  
+		Location(UF) ∧ ¬HasFood(p) ∧ ¬Served(c) ∧ ¬Holding(a, p)
+)
+
+Goal(
+    Served(C)
+)
+----------- Backward State Space Search ------------
+Note: Leaving out unchanged predicates
+
+Goal 1: Served(C)
+Available Actions:  HandOver(a, p, UF, c)
+-> Selected -- HandOver(a, p, UF, c)
+
+For the following goals ¬Served(c)
+
+Goal 2: Holding(a, p) ∧ At(a, UF) ∧ HasFood(p)
+Actions available:  Move(a, BUFF, UF)
+					Move(a, UB, UF)
+                    Move(a, MF, UF)
+                    
+-> Selected -- Move(a, BUFF, UF)
+
+Goal 3: Holding(a, p) ∧ At(a, BUFF) ∧ HasFood(p)
+Available Actions:  Fill(a, p)
+					Move(a, UF, BUFF)
+                    PickUp (a, p, BUFF)
+                    
+-> Selected -- Fill(a, p)
+
+Goal 4: Holding(a, p) ∧ At(a, BUFF) ∧ ¬HasFood(p)
+Actions available:  Move(a, UF, BUFF)
+					PickUp(a, p, BUFF)
+                    
+-> Selected -- PickUp(a, p, BUFF)
+
+Goal 5: At(a, BUFF) ∧ At(p, BUFF) ∧ ¬Holding(a,p) ∧ ¬HasFood(p)  
+==> Initial State
+
+Executed Plan:
+	PickUp(a, p, BUFF)
+	Fill(a, p)
+	Move(a, BUFF, UF)
+	HandOver(a, p, UF, c)
+
+
+
+Part 4:
+4.1
+->Additional predicates required to check if item is Temperature Dependent
+->A list of orders as a type would be required to to work through customer order
+->An additional Action DeliverTempDependent would be required to deliver 
+	temperature dependent items if they exist in the order
+->The FILL Action needs to be modified so that the correct items are collected
+->An additional Goal would be DeliveredOnTime for the time dependent food items 
+	so that they are delivered before going cold or melting.
+->An additional Goal AllItemsDelivered would be used to ensure all the items in the customer
+	order are delivered
+
+
+4.2
+->A list of customers as a type that includes the CustomerBefore to keep track of the order
+->Modify Part4.1 by using different Actions for each item i.e ServeTempDepItems & ServeMain
+->An Action CurrentlyServing that sets the customer order CURRENTLY being served
+-> MOVES need to be modified so that movement is only relevant to CurrentlyServed Customer
+-> An Action ServingComplete that sets the Currently served Customer  
+	as COMPLETE if the TempDepItems have been served and Main Dish was not ordered
+	as PARTIALLY-COMPLETE if the Main Dish (Sushi) was ordered
+	and sets the NEXT customer as CURRENTLY
+-> Modify HandOver action so that any item can be Handed over to the customer
+-> The Goal includes having all Customers set as COMPLETED as well as Goals in 4.1
